@@ -2,6 +2,8 @@
 
 Instalador estilo [Whaticket SaaS](https://github.com/plwdesign/instaladorwhatsapsaas-main-new) para deploy em servidor Linux (Ubuntu/Debian).
 
+**GP** - Inserir em meu installer | Nginx • Certbot • PM2 • PostgreSQL • Node.js
+
 ## Pré-requisitos
 
 - Ubuntu 20.04+ ou Debian 11+
@@ -9,7 +11,25 @@ Instalador estilo [Whaticket SaaS](https://github.com/plwdesign/instaladorwhatsa
 - Domínio apontando para o IP do servidor (para SSL)
 - Repositório Git do projeto
 
-## Primeira instalação
+## Menu principal (recomendado)
+
+```bash
+cd automacao/installer
+chmod +x install.sh install_primaria install_instancia scripts/*.sh
+sudo ./install.sh
+```
+
+### Opções do menu
+
+| Opção | Descrição |
+|-------|-----------|
+| 1 | **Instalação primária** - Instalar do zero (Nginx, Certbot, SSL) |
+| 2 | **Nova instância** - Adicionar outra instância no servidor |
+| 3 | **Trocar domínio** - Alterar domínios API/App e gerar novo SSL |
+| 4 | **Remover instalação** - Parar PM2, remover Nginx, opcional: banco/dados |
+| 0 | Sair |
+
+## Primeira instalação (direta)
 
 ```bash
 # Atualizar sistema
@@ -20,8 +40,9 @@ sudo apt upgrade -y
 sudo apt install -y git
 git clone https://github.com/SEU_USUARIO/automacao.git
 cd automacao/installer
-chmod +x install_primaria install_instancia
-sudo ./install_primaria
+chmod +x install.sh install_primaria install_instancia scripts/*.sh
+sudo ./install.sh
+# Escolha opção 1 (Instalação primária)
 ```
 
 ### Perguntas durante a instalação
@@ -49,7 +70,7 @@ O Certbot solicitará certificado SSL automaticamente após a instalação.
 
 ## Instalações adicionais (múltiplas instâncias)
 
-Para criar outra instância no mesmo servidor:
+No menu principal, opção **2** (Nova instância), ou diretamente:
 
 ```bash
 cd automacao/installer
@@ -58,10 +79,32 @@ sudo ./install_instancia
 
 Será solicitado o nome da nova instância, senha do banco e subdomínios. Cada instância usa portas e bancos diferentes.
 
+## Trocar domínio
+
+Para alterar os domínios (ex: migrar para novo domínio) e gerar novo certificado SSL:
+
+```bash
+sudo ./install.sh
+# Opção 3 (Trocar domínio)
+```
+
+Ou diretamente: `sudo ./scripts/trocar_dominio.sh`
+
+## Remover instalação
+
+Para remover uma instância (PM2, Nginx, banco e/ou arquivos):
+
+```bash
+sudo ./install.sh
+# Opção 4 (Remover instalação)
+```
+
+Será perguntado o que remover: processos PM2, configs Nginx, banco de dados e arquivos.
+
 ## Estrutura após instalação
 
 ```
-/var/www/post01/          # Nome da instância
+/home/deploy/instancia/post01/   # Nome da instância (usuário deploy)
 ├── backend/
 │   ├── .env
 │   └── dist/

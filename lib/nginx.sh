@@ -124,9 +124,12 @@ system_nginx_restart() {
 system_certbot_setup() {
   local inst_name="$1"
   local subdomain_api="$2"
-  local subdomain_app="$3"
+  local subdomain_app="${3:-}"
   
   log_step "Configurando SSL com Certbot..."
-  sudo certbot --nginx -d "$subdomain_api" -d "$subdomain_app" --non-interactive --agree-tos --redirect -m "${ADMIN_EMAIL}" 2>/dev/null || log_warn "Certbot não executado (domínios podem não estar apontando ainda)"
+  cert_args=(--nginx --non-interactive --agree-tos --redirect -m "${ADMIN_EMAIL}")
+  [[ -n "$subdomain_api" ]] && cert_args+=(-d "$subdomain_api")
+  [[ -n "$subdomain_app" ]] && cert_args+=(-d "$subdomain_app")
+  sudo certbot "${cert_args[@]}" 2>/dev/null || log_warn "Certbot não executado (domínios podem não estar apontando ainda)"
   log_ok "SSL configurado"
 }

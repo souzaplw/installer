@@ -71,7 +71,7 @@ fi
 
 [[ -n "$SUBDOMAIN_BACKEND" || -n "$SUBDOMAIN_FRONTEND" ]] && system_nginx_restart
 
-if [[ -n "$SUBDOMAIN_BACKEND" && -n "$SUBDOMAIN_FRONTEND" ]]; then
+if [[ -n "$SUBDOMAIN_BACKEND" || -n "$SUBDOMAIN_FRONTEND" ]]; then
   system_certbot_setup "$INSTANCE_NAME" "$SUBDOMAIN_BACKEND" "$SUBDOMAIN_FRONTEND"
 fi
 
