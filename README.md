@@ -28,6 +28,7 @@ sudo ./install.sh
 | 3 | **Trocar domínio** - Alterar domínios API/App e gerar novo SSL |
 | 4 | **Remover instalação** - Parar PM2, remover Nginx, opcional: banco/dados |
 | 5 | **Atualizar** - Puxar alterações do GitHub e recompilar |
+| 6 | **Corrigir QR (Puppeteer)** - Dependências Chrome para WhatsApp gerar QR code |
 | 0 | Sair |
 
 ## Primeira instalação (direta)
@@ -126,6 +127,16 @@ pm2 restart post01-backend
 
 # Logs
 pm2 logs post01-backend
+```
+
+## QR Code não aparece (libnspr4.so / Puppeteer)
+
+Se o WhatsApp não gerar QR code e aparecer erro `libnspr4.so: cannot open shared object file`, instale as dependências do Chrome:
+
+```bash
+cd automacao/installer
+sudo ./scripts/install_puppeteer_deps.sh
+pm2 restart gruposzap-backend
 ```
 
 ## Migrations com falha

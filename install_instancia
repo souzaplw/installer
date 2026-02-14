@@ -67,6 +67,9 @@ echo "  Nova instância: $INSTANCE_NAME"
 echo "=============================================="
 echo ""
 
+# Dependências Puppeteer (WhatsApp QR) se ainda não instaladas
+system_puppeteer_deps_install 2>/dev/null || true
+
 # Criar banco (cd /tmp evita "Permission denied" para postgres em /root)
 if [[ "$DB_USER" == "postgres" ]]; then
   (cd /tmp && sudo -u postgres psql -c "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" -t -A 2>/dev/null) | grep -q 1 || \

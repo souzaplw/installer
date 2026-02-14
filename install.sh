@@ -48,6 +48,7 @@ show_menu() {
   echo -e "  ${GREEN}3)${NC} Trocar domínio         - Alterar domínios API/App e gerar novo SSL"
   echo -e "  ${GREEN}4)${NC} Remover instalação     - Parar PM2, remover Nginx, opcional: banco/dados"
   echo -e "  ${GREEN}5)${NC} Atualizar              - Puxar alterações do GitHub e recompilar"
+  echo -e "  ${GREEN}6)${NC} Corrigir QR (Puppeteer) - Dependências Chrome para WhatsApp gerar QR code"
   echo -e "  ${GREEN}0)${NC} Sair"
   echo -e ""
 }
@@ -57,7 +58,7 @@ main() {
     show_banner
     show_menu
 
-    read -p "  Opção [0-5]: " opcao
+    read -p "  Opção [0-6]: " opcao
 
     case "$opcao" in
       1)
@@ -91,6 +92,11 @@ main() {
       5)
         echo ""
         "${PROJECT_ROOT}/scripts/atualizar.sh"
+        read -p "Pressione Enter para voltar ao menu..." dummy
+        ;;
+      6)
+        echo ""
+        "${PROJECT_ROOT}/scripts/install_puppeteer_deps.sh"
         read -p "Pressione Enter para voltar ao menu..." dummy
         ;;
       0)

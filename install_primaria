@@ -38,6 +38,7 @@ system_postgres_install
 system_pm2_install
 system_nginx_install
 system_certbot_install
+system_puppeteer_deps_install
 
 system_git_clone "$INST_DIR" "$REPO_URL" "$REPO_BRANCH" "$DEPLOY_USER"
 
