@@ -17,12 +17,21 @@ echo "  Trocar domínio - WhatsApp Group Sender"
 echo "=============================================="
 echo ""
 
-if [[ ! -f "${PROJECT_ROOT}/config" ]]; then
+# Busca config (mesma lógica do atualizar.sh)
+CONFIG_FILE=""
+[[ -f "${PROJECT_ROOT}/config" ]] && CONFIG_FILE="${PROJECT_ROOT}/config"
+[[ -z "$CONFIG_FILE" ]] && [[ -f "/root/installer/config" ]] && CONFIG_FILE="/root/installer/config"
+[[ -z "$CONFIG_FILE" ]] && [[ -d /home/deploy/instancia ]] && for d in /home/deploy/instancia/*/; do
+  [[ -f "${d}installer/config" ]] && { CONFIG_FILE="${d}installer/config"; break; }
+  [[ -f "${d}automacao/installer/config" ]] && { CONFIG_FILE="${d}automacao/installer/config"; break; }
+done
+
+if [[ -z "$CONFIG_FILE" ]]; then
   log_err "Nenhuma instalação encontrada. Execute primeiro a instalação primária."
   exit 1
 fi
 
-source "${PROJECT_ROOT}/config"
+source "$CONFIG_FILE"
 
 log_info "Domínios atuais:"
 echo "  API:  ${SUBDOMAIN_BACKEND:-nenhum}"

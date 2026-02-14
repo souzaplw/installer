@@ -42,6 +42,12 @@ system_puppeteer_deps_install
 
 system_git_clone "$INST_DIR" "$REPO_URL" "$REPO_BRANCH" "$DEPLOY_USER"
 
+# Copia config para a instância (permite atualizar.sh encontrar mesmo rodando de outro diretório)
+if [[ -f "${PROJECT_ROOT}/config" ]] && [[ -d "$INST_DIR" ]]; then
+  cp "${PROJECT_ROOT}/config" "${INST_DIR}/installer/config"
+  chmod 600 "${INST_DIR}/installer/config"
+fi
+
 if [[ "$DB_USER" == "postgres" ]]; then
   (cd /tmp && sudo -u postgres psql -c "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" -t -A 2>/dev/null) | grep -q 1 || \
   (cd /tmp && sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER postgres;")

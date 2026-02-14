@@ -24,12 +24,21 @@ echo "  Remover instalação - WhatsApp Group Sender"
 echo "=============================================="
 echo ""
 
-if [[ ! -f "${PROJECT_ROOT}/config" ]]; then
+# Busca config (mesma lógica do atualizar.sh)
+CONFIG_FILE=""
+[[ -f "${PROJECT_ROOT}/config" ]] && CONFIG_FILE="${PROJECT_ROOT}/config"
+[[ -z "$CONFIG_FILE" ]] && [[ -f "/root/installer/config" ]] && CONFIG_FILE="/root/installer/config"
+[[ -z "$CONFIG_FILE" ]] && [[ -d /home/deploy/instancia ]] && for d in /home/deploy/instancia/*/; do
+  [[ -f "${d}installer/config" ]] && { CONFIG_FILE="${d}installer/config"; break; }
+  [[ -f "${d}automacao/installer/config" ]] && { CONFIG_FILE="${d}automacao/installer/config"; break; }
+done
+
+if [[ -z "$CONFIG_FILE" ]]; then
   log_err "Nenhuma instalação encontrada (config não existe)"
   exit 1
 fi
 
-source "${PROJECT_ROOT}/config"
+source "$CONFIG_FILE"
 source "${PROJECT_ROOT}/variables/manifest.sh"
 source "${PROJECT_ROOT}/utils/manifest.sh" 2>/dev/null || true
 
