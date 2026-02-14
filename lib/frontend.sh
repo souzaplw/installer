@@ -31,6 +31,7 @@ frontend_node_build() {
   local deploy_user="${DEPLOY_USER:-deploy}"
   log_step "Compilando frontend..."
   sudo -u "$deploy_user" bash -c "cd '${inst_dir}/frontend' && npm run build"
+  [[ -d "${inst_dir}/frontend/dist" ]] && nginx_fix_frontend_permissions "$inst_dir"
   log_ok "Frontend compilado"
 }
 

@@ -27,6 +27,7 @@ sudo ./install.sh
 | 2 | **Nova instância** - Adicionar outra instância no servidor |
 | 3 | **Trocar domínio** - Alterar domínios API/App e gerar novo SSL |
 | 4 | **Remover instalação** - Parar PM2, remover Nginx, opcional: banco/dados |
+| 5 | **Atualizar** - Puxar alterações do GitHub e recompilar |
 | 0 | Sair |
 
 ## Primeira instalação (direta)
@@ -125,6 +126,16 @@ pm2 restart post01-backend
 
 # Logs
 pm2 logs post01-backend
+```
+
+## Migrations com falha
+
+Se `prisma migrate deploy` falhar com erro P3018, execute primeiro:
+
+```bash
+cd backend
+npx prisma migrate resolve --rolled-back "NOME_DA_MIGRATION_FALHADA"
+npx prisma migrate deploy
 ```
 
 ## Configuração salva

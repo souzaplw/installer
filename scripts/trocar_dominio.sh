@@ -91,6 +91,7 @@ if [[ -d "${INST_DIR}/frontend" ]]; then
   echo "VITE_API_BASE_URL=${api_url}" > "${INST_DIR}/frontend/config/.env.production"
   cp "${INST_DIR}/frontend/config/.env.production" "${INST_DIR}/frontend/config/.env" 2>/dev/null || true
   sudo -u "${DEPLOY_USER:-deploy}" bash -c "cd '${INST_DIR}/frontend' && npm run build"
+  nginx_fix_frontend_permissions "$INST_DIR"
 fi
 
 # Reinicia PM2 frontend se estava rodando

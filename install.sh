@@ -47,51 +47,62 @@ show_menu() {
   echo -e "  ${GREEN}2)${NC} Nova instância         - Adicionar outra instância no servidor"
   echo -e "  ${GREEN}3)${NC} Trocar domínio         - Alterar domínios API/App e gerar novo SSL"
   echo -e "  ${GREEN}4)${NC} Remover instalação     - Parar PM2, remover Nginx, opcional: banco/dados"
+  echo -e "  ${GREEN}5)${NC} Atualizar              - Puxar alterações do GitHub e recompilar"
   echo -e "  ${GREEN}0)${NC} Sair"
   echo -e ""
 }
 
 main() {
-  show_banner
-  show_menu
+  while true; do
+    show_banner
+    show_menu
 
-  read -p "  Opção [0-4]: " opcao
+    read -p "  Opção [0-5]: " opcao
 
-  case "$opcao" in
-    1)
-      echo ""
-      if [[ -f "${PROJECT_ROOT}/config" ]]; then
-        echo -e "${YELLOW}[AVISO]${NC} Já existe uma instalação em ${PROJECT_ROOT}/config"
-        read -p "Deseja sobrescrever e reinstalar? (s/N): " resp
-        [[ "$resp" != "s" && "$resp" != "S" ]] && { echo "Cancelado."; exit 0; }
-      fi
-      exec "${PROJECT_ROOT}/install_primaria"
-      ;;
-    2)
-      echo ""
-      if [[ ! -f "${PROJECT_ROOT}/config" ]]; then
-        echo -e "${RED}[ERRO]${NC} Execute primeiro a instalação primária (opção 1)"
-        exit 1
-      fi
-      exec "${PROJECT_ROOT}/install_instancia"
-      ;;
-    3)
-      echo ""
-      "${PROJECT_ROOT}/scripts/trocar_dominio.sh"
-      ;;
-    4)
-      echo ""
-      "${PROJECT_ROOT}/scripts/remover_instalacao.sh"
-      ;;
-    0)
-      echo -e "\n${GREEN}Até logo!${NC}\n"
-      exit 0
-      ;;
-    *)
-      echo -e "\n${RED}Opção inválida.${NC}\n"
-      exit 1
-      ;;
-  esac
+    case "$opcao" in
+      1)
+        echo ""
+        if [[ -f "${PROJECT_ROOT}/config" ]]; then
+          echo -e "${YELLOW}[AVISO]${NC} Já existe uma instalação em ${PROJECT_ROOT}/config"
+          read -p "Deseja sobrescrever e reinstalar? (s/N): " resp
+          [[ "$resp" != "s" && "$resp" != "S" ]] && { echo "Cancelado."; continue; }
+        fi
+        exec "${PROJECT_ROOT}/install_primaria"
+        ;;
+      2)
+        echo ""
+        if [[ ! -f "${PROJECT_ROOT}/config" ]]; then
+          echo -e "${RED}[ERRO]${NC} Execute primeiro a instalação primária (opção 1)"
+          read -p "Pressione Enter para continuar..." dummy
+          continue
+        fi
+        exec "${PROJECT_ROOT}/install_instancia"
+        ;;
+      3)
+        echo ""
+        "${PROJECT_ROOT}/scripts/trocar_dominio.sh"
+        read -p "Pressione Enter para voltar ao menu..." dummy
+        ;;
+      4)
+        echo ""
+        "${PROJECT_ROOT}/scripts/remover_instalacao.sh"
+        read -p "Pressione Enter para voltar ao menu..." dummy
+        ;;
+      5)
+        echo ""
+        "${PROJECT_ROOT}/scripts/atualizar.sh"
+        read -p "Pressione Enter para voltar ao menu..." dummy
+        ;;
+      0)
+        echo -e "\n${GREEN}Até logo!${NC}\n"
+        exit 0
+        ;;
+      *)
+        echo -e "\n${RED}Opção inválida.${NC}\n"
+        read -p "Pressione Enter para continuar..." dummy
+        ;;
+    esac
+  done
 }
 
 main "$@"

@@ -30,6 +30,19 @@ NGINXEOF
   log_ok "Nginx backend configurado"
 }
 
+# Garante que Nginx (www-data) consiga ler os arquivos estáticos do frontend
+# Reconhece instância pelo inst_dir (ex: /home/deploy/instancia/post10)
+nginx_fix_frontend_permissions() {
+  local inst_dir="$1"
+  local deploy_user="${DEPLOY_USER:-deploy}"
+  log_step "Ajustando permissões para Nginx ler frontend..."
+  [[ -d /home/$deploy_user ]] && sudo chmod 711 /home/$deploy_user
+  [[ -d /home/$deploy_user/instancia ]] && sudo chmod 755 /home/$deploy_user/instancia
+  [[ -d "$inst_dir" ]] && sudo chmod 755 "$inst_dir" "$inst_dir/frontend" 2>/dev/null || true
+  [[ -d "${inst_dir}/frontend/dist" ]] && sudo chmod -R 755 "${inst_dir}/frontend/dist"
+  log_ok "Permissões ajustadas (frontend: $inst_dir)"
+}
+
 frontend_nginx_setup() {
   local inst_dir="$1"
   local inst_name="$2"
@@ -69,6 +82,7 @@ server {
 }
 NGINXEOF
   sudo ln -sf "$cfg" /etc/nginx/sites-enabled/
+  nginx_fix_frontend_permissions "$inst_dir"
   log_ok "Nginx frontend configurado"
 }
 
@@ -112,6 +126,7 @@ server {
 }
 NGINXEOF
   sudo ln -sf "$cfg" /etc/nginx/sites-enabled/
+  nginx_fix_frontend_permissions "$inst_dir"
   log_ok "Nginx frontend configurado"
 }
 
