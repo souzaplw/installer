@@ -47,37 +47,42 @@ ENVEOF
 
 backend_node_dependencies() {
   local inst_dir="$1"
+  local deploy_user="${DEPLOY_USER:-deploy}"
   log_step "Instalando dependências do backend..."
-  (cd "${inst_dir}/backend" && npm ci 2>/dev/null || npm install --production=false)
+  sudo -u "$deploy_user" bash -c "cd '${inst_dir}/backend' && npm ci 2>/dev/null || npm install --production=false"
   log_ok "Dependências instaladas"
 }
 
 backend_node_build() {
   local inst_dir="$1"
+  local deploy_user="${DEPLOY_USER:-deploy}"
   log_step "Compilando backend..."
-  (cd "${inst_dir}/backend" && npx prisma generate && npm run build)
+  sudo -u "$deploy_user" bash -c "cd '${inst_dir}/backend' && npx prisma generate && npm run build"
   log_ok "Backend compilado"
 }
 
 backend_db_migrate() {
   local inst_dir="$1"
+  local deploy_user="${DEPLOY_USER:-deploy}"
   log_step "Executando migrations..."
-  (cd "${inst_dir}/backend" && npx prisma migrate deploy)
+  sudo -u "$deploy_user" bash -c "cd '${inst_dir}/backend' && npx prisma migrate deploy"
   log_ok "Migrations aplicadas"
 }
 
 backend_db_seed() {
   local inst_dir="$1"
+  local deploy_user="${DEPLOY_USER:-deploy}"
   log_step "Criando admin inicial..."
-  (cd "${inst_dir}/backend" && node dist/scripts/seedAdmin.js 2>/dev/null || (npm run build 2>/dev/null; node dist/scripts/seedAdmin.js))
+  sudo -u "$deploy_user" bash -c "cd '${inst_dir}/backend' && (node dist/scripts/seedAdmin.js 2>/dev/null || (npm run build 2>/dev/null; node dist/scripts/seedAdmin.js))"
   log_ok "Admin criado"
 }
 
 backend_start_pm2() {
   local inst_dir="$1"
   local inst_name="$2"
-  log_step "Iniciando backend no PM2..."
-  (cd "${inst_dir}/backend" && pm2 delete "${inst_name}-backend" 2>/dev/null; true)
-  (cd "${inst_dir}/backend" && pm2 start dist/index.js --name "${inst_name}-backend" && pm2 save)
+  local deploy_user="${DEPLOY_USER:-deploy}"
+  log_step "Iniciando backend no PM2 (como $deploy_user)..."
+  sudo -u "$deploy_user" bash -c "cd '${inst_dir}/backend' && pm2 delete '${inst_name}-backend' 2>/dev/null; true"
+  sudo -u "$deploy_user" bash -c "cd '${inst_dir}/backend' && pm2 start dist/index.js --name '${inst_name}-backend' && pm2 save"
   log_ok "Backend rodando"
 }

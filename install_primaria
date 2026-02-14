@@ -27,8 +27,10 @@ echo ""
 inquiry_primaria
 source "${PROJECT_ROOT}/config"
 
+system_create_deploy_user "$DEPLOY_USER"
+
 sudo mkdir -p "$DEPLOY_DIR"
-sudo chown "$USER:$USER" "$DEPLOY_DIR"
+sudo chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "$DEPLOY_DIR" 2>/dev/null || sudo chown "${DEPLOY_USER}:${DEPLOY_USER}" "$DEPLOY_DIR"
 
 system_update
 system_node_install
@@ -37,16 +39,17 @@ system_pm2_install
 system_nginx_install
 system_certbot_install
 
-system_git_clone "$INST_DIR" "$REPO_URL" "$REPO_BRANCH"
+system_git_clone "$INST_DIR" "$REPO_URL" "$REPO_BRANCH" "$DEPLOY_USER"
 
 if [[ "$DB_USER" == "postgres" ]]; then
-  sudo -u postgres psql -c "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" -t -A 2>/dev/null | grep -q 1 || \
-  sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER postgres;"
+  (cd /tmp && sudo -u postgres psql -c "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" -t -A 2>/dev/null) | grep -q 1 || \
+  (cd /tmp && sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER postgres;")
 else
   backend_db_create "$DB_USER" "$DB_PASS" "$DB_NAME"
 fi
 
 backend_set_env "$INST_DIR"
+sudo chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "$INST_DIR"
 backend_node_dependencies "$INST_DIR"
 backend_node_build "$INST_DIR"
 backend_db_migrate "$INST_DIR"
@@ -72,9 +75,15 @@ if [[ -n "$SUBDOMAIN_BACKEND" && -n "$SUBDOMAIN_FRONTEND" ]]; then
   system_certbot_setup "$INSTANCE_NAME" "$SUBDOMAIN_BACKEND" "$SUBDOMAIN_FRONTEND"
 fi
 
+system_pm2_startup "$DEPLOY_USER"
+
 echo ""
 echo "Instalação concluída!"
+echo "  Deploy:   /home/${DEPLOY_USER}/instancia/${INSTANCE_NAME}"
 echo "  Backend:  ${BACKEND_URL}"
 echo "  Frontend: ${FRONTEND_URL}"
 echo "  Admin:    ${ADMIN_EMAIL}"
+echo ""
+echo "  PM2: processos rodando como usuário ${DEPLOY_USER}"
+echo "  Se o PM2 não iniciar no boot, execute: sudo -u ${DEPLOY_USER} pm2 startup"
 echo ""

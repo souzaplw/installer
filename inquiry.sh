@@ -27,9 +27,18 @@ inquiry_primaria() {
   prompt_text DB_HOST "Host do PostgreSQL" "localhost"
   prompt_text DB_PORT "Porta do PostgreSQL" "5432"
   
-  # Portas
+  # Usuário deploy e diretório
+  prompt_text DEPLOY_USER "Usuário para rodar a aplicação" "deploy"
+  DEPLOY_USER=$(echo "$DEPLOY_USER" | tr -cd 'a-zA-Z0-9_-' | head -c 20)
+  [[ -z "$DEPLOY_USER" ]] && DEPLOY_USER="deploy"
+  DEPLOY_DIR="/home/${DEPLOY_USER}/instancia"
+  INST_DIR="${DEPLOY_DIR}/${INSTANCE_NAME}"
+
+  # Portas (faixas: backend 4000-4999, frontend 3000-3999)
+  echo ""
+  echo "  Faixas sugeridas: Backend 4000-4999 | Frontend 3000-3999"
   prompt_text PORT_BACKEND "Porta do backend" "4250"
-  prompt_text PORT_FRONTEND "Porta do frontend (se usar PM2 para servir)" "3000"
+  prompt_text PORT_FRONTEND "Porta do frontend (PM2 serve estático)" "3000"
   
   # Subdomínios (para produção com nginx)
   prompt_text SUBDOMAIN_BACKEND "Subdomínio do backend (ex: api.seudominio.com)" ""
@@ -50,10 +59,6 @@ inquiry_primaria() {
   prompt_text ADMIN_PASSWORD "Senha do administrador" "" 1
   [[ -z "$ADMIN_PASSWORD" ]] && ADMIN_PASSWORD="changeme123"
   prompt_text ADMIN_NAME "Nome do administrador" "Administrador"
-  
-  # Diretório de deploy
-  DEPLOY_DIR="/var/www"
-  INST_DIR="${DEPLOY_DIR}/${INSTANCE_NAME}"
   
   # Salvar config para install_instancia
   mkdir -p "$PROJECT_ROOT"
@@ -76,6 +81,7 @@ ADMIN_PASSWORD=$ADMIN_PASSWORD
 ADMIN_NAME=$ADMIN_NAME
 REPO_URL=$REPO_URL
 REPO_BRANCH=$REPO_BRANCH
+DEPLOY_USER=$DEPLOY_USER
 DEPLOY_DIR=$DEPLOY_DIR
 INST_DIR=$INST_DIR
 CONFIGEOF

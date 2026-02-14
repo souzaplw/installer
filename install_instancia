@@ -43,13 +43,17 @@ if [[ -f "${PROJECT_ROOT}/config" ]]; then
     prompt_text DB_PASS "Senha do banco para $INSTANCE_NAME" "" 1
     [[ -z "$DB_PASS" ]] && { log_err "Senha obrigatória"; exit 1; }
     sed -i "s|^DB_PASS=.*|DB_PASS=$DB_PASS|" "${PROJECT_ROOT}/config"
-    # Portas diferentes para cada instância
-    PORT_BACKEND=$((PORT_BACKEND + 1))
-    PORT_FRONTEND=$((PORT_FRONTEND + 1))
+    # Portas diferentes para cada instância (faixas: backend 4000-4999, frontend 3000-3999)
+    echo ""
+    echo "  Faixas: Backend 4000-4999 | Frontend 3000-3999"
+    prompt_text PORT_BACKEND "Porta do backend" "$((PORT_BACKEND + 1))"
+    prompt_text PORT_FRONTEND "Porta do frontend" "$((PORT_FRONTEND + 1))"
     prompt_text SUBDOMAIN_BACKEND "Subdomínio backend (ex: api2.seudominio.com)" "$SUBDOMAIN_BACKEND"
     prompt_text SUBDOMAIN_FRONTEND "Subdomínio frontend (ex: app2.seudominio.com)" "$SUBDOMAIN_FRONTEND"
-    [[ -n "$SUBDOMAIN_BACKEND" ]] && BACKEND_URL="https://${SUBDOMAIN_BACKEND}"
-    [[ -n "$SUBDOMAIN_FRONTEND" ]] && FRONTEND_URL="https://${SUBDOMAIN_FRONTEND}"
+    sed -i "s/^PORT_BACKEND=.*/PORT_BACKEND=$PORT_BACKEND/" "${PROJECT_ROOT}/config"
+    sed -i "s/^PORT_FRONTEND=.*/PORT_FRONTEND=$PORT_FRONTEND/" "${PROJECT_ROOT}/config"
+    [[ -n "$SUBDOMAIN_BACKEND" ]] && BACKEND_URL="https://${SUBDOMAIN_BACKEND}" || BACKEND_URL="http://localhost:${PORT_BACKEND}"
+    [[ -n "$SUBDOMAIN_FRONTEND" ]] && FRONTEND_URL="https://${SUBDOMAIN_FRONTEND}" || FRONTEND_URL="http://localhost:${PORT_FRONTEND}"
     FRONTEND_API_URL="$BACKEND_URL"
   fi
 else
@@ -63,19 +67,20 @@ echo "  Nova instância: $INSTANCE_NAME"
 echo "=============================================="
 echo ""
 
-# Criar banco
+# Criar banco (cd /tmp evita "Permission denied" para postgres em /root)
 if [[ "$DB_USER" == "postgres" ]]; then
-  sudo -u postgres psql -c "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" -t -A 2>/dev/null | grep -q 1 || \
-  sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER postgres;"
+  (cd /tmp && sudo -u postgres psql -c "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" -t -A 2>/dev/null) | grep -q 1 || \
+  (cd /tmp && sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER postgres;")
 else
   backend_db_create "$DB_USER" "$DB_PASS" "$DB_NAME"
 fi
 
 # Clonar
-system_git_clone "$INST_DIR" "$REPO_URL" "$REPO_BRANCH"
+system_git_clone "$INST_DIR" "$REPO_URL" "$REPO_BRANCH" "${DEPLOY_USER:-deploy}"
 
 # Backend
 backend_set_env "$INST_DIR"
+sudo chown -R "${DEPLOY_USER:-deploy}:${DEPLOY_USER:-deploy}" "$INST_DIR"
 backend_node_dependencies "$INST_DIR"
 backend_node_build "$INST_DIR"
 backend_db_migrate "$INST_DIR"

@@ -20,25 +20,27 @@ EOF
 
 frontend_node_dependencies() {
   local inst_dir="$1"
+  local deploy_user="${DEPLOY_USER:-deploy}"
   log_step "Instalando dependências do frontend..."
-  (cd "${inst_dir}/frontend" && npm ci 2>/dev/null || npm install)
+  sudo -u "$deploy_user" bash -c "cd '${inst_dir}/frontend' && npm ci 2>/dev/null || npm install"
   log_ok "Dependências instaladas"
 }
 
 frontend_node_build() {
   local inst_dir="$1"
+  local deploy_user="${DEPLOY_USER:-deploy}"
   log_step "Compilando frontend..."
-  (cd "${inst_dir}/frontend" && npm run build)
+  sudo -u "$deploy_user" bash -c "cd '${inst_dir}/frontend' && npm run build"
   log_ok "Frontend compilado"
 }
 
 frontend_start_pm2() {
   local inst_dir="$1"
   local inst_name="$2"
-  log_step "Iniciando frontend no PM2 (servindo build estático)..."
+  local deploy_user="${DEPLOY_USER:-deploy}"
+  log_step "Iniciando frontend no PM2 (como $deploy_user, porta ${PORT_FRONTEND})..."
   which serve &>/dev/null || sudo npm install -g serve
-  (pm2 delete "${inst_name}-frontend" 2>/dev/null; true)
-  pm2 serve "${inst_dir}/frontend/dist" "${PORT_FRONTEND}" --spa --name "${inst_name}-frontend"
-  pm2 save
+  sudo -u "$deploy_user" bash -c "pm2 delete '${inst_name}-frontend' 2>/dev/null; true"
+  sudo -u "$deploy_user" bash -c "pm2 serve '${inst_dir}/frontend/dist' ${PORT_FRONTEND} --spa --name '${inst_name}-frontend' && pm2 save"
   log_ok "Frontend rodando na porta ${PORT_FRONTEND}"
 }
