@@ -24,22 +24,58 @@ echo "  Remover instalação - WhatsApp Group Sender"
 echo "=============================================="
 echo ""
 
-# Busca config (mesma lógica do atualizar.sh)
+source "${PROJECT_ROOT}/variables/manifest.sh" 2>/dev/null || true
+
+# Busca config (mesma lógica do atualizar.sh - múltiplos locais + descoberta)
 CONFIG_FILE=""
 [[ -f "${PROJECT_ROOT}/config" ]] && CONFIG_FILE="${PROJECT_ROOT}/config"
 [[ -z "$CONFIG_FILE" ]] && [[ -f "/root/installer/config" ]] && CONFIG_FILE="/root/installer/config"
-[[ -z "$CONFIG_FILE" ]] && [[ -d /home/deploy/instancia ]] && for d in /home/deploy/instancia/*/; do
-  [[ -f "${d}installer/config" ]] && { CONFIG_FILE="${d}installer/config"; break; }
-  [[ -f "${d}automacao/installer/config" ]] && { CONFIG_FILE="${d}automacao/installer/config"; break; }
-done
+[[ -z "$CONFIG_FILE" ]] && [[ -f "/root/config" ]] && CONFIG_FILE="/root/config"
+search_config_in() {
+  local base_dir="$1"
+  [[ ! -d "$base_dir" ]] && return 1
+  for d in "$base_dir"/*/; do
+    [[ -d "$d" ]] || continue
+    if [[ -f "${d}installer/config" ]]; then CONFIG_FILE="${d}installer/config"; return 0; fi
+    if [[ -f "${d}automacao/installer/config" ]]; then CONFIG_FILE="${d}automacao/installer/config"; return 0; fi
+    if [[ -f "${d}config" ]]; then CONFIG_FILE="${d}config"; return 0; fi
+  done
+  return 1
+}
+[[ -z "$CONFIG_FILE" ]] && search_config_in /home/deploy || true
+[[ -z "$CONFIG_FILE" ]] && search_config_in /var/www || true
+
+# Fallback: descobre instância por backend/.git sem config
+discover_instance() {
+  local base_dir="$1"
+  [[ ! -d "$base_dir" ]] && return 1
+  for inst_path in "$base_dir"/*/; do
+    [[ -d "$inst_path" ]] || continue
+    [[ -d "${inst_path}backend" ]] || continue
+    if [[ -d "${inst_path}.git" ]] || [[ -d "${inst_path}backend/.git" ]]; then
+      INST_DIR="${inst_path%/}"
+      INSTANCE_NAME=$(basename "$INST_DIR")
+      DEPLOY_USER="${DEPLOY_USER:-deploy}"
+      DB_NAME="${INSTANCE_NAME}"
+      CONFIG_FILE="[DISCOVERED]"
+      return 0
+    fi
+  done
+  return 1
+}
+if [[ -z "$CONFIG_FILE" ]]; then
+  discover_instance /home/deploy || discover_instance /var/www || true
+fi
 
 if [[ -z "$CONFIG_FILE" ]]; then
   log_err "Nenhuma instalação encontrada (config não existe)"
+  log_err "Dica: copie o config para installer/config ou em /home/deploy/NOME/installer/config"
   exit 1
 fi
 
-source "$CONFIG_FILE"
-source "${PROJECT_ROOT}/variables/manifest.sh"
+if [[ "$CONFIG_FILE" != "[DISCOVERED]" ]]; then
+  source "$CONFIG_FILE"
+fi
 source "${PROJECT_ROOT}/utils/manifest.sh" 2>/dev/null || true
 
 log_info "Instância: $INSTANCE_NAME"

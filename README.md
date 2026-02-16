@@ -31,21 +31,17 @@ sudo ./install.sh
 | 6 | **Corrigir QR (Puppeteer)** - Dependências Chrome para WhatsApp gerar QR code |
 | 0 | Sair |
 
-## Primeira instalação (direta)
+## Primeira instalação (comando único)
 
 ```bash
-# Atualizar sistema
-sudo apt update
-sudo apt upgrade -y
-
-# Clonar e executar
-sudo apt install -y git
-git clone https://github.com/SEU_USUARIO/automacao.git
-cd automacao/installer
-chmod +x install.sh install_primaria install_instancia scripts/*.sh
-sudo ./install.sh
-# Escolha opção 1 (Instalação primária)
+sudo apt update && sudo apt upgrade -y
 ```
+
+```bash
+sudo apt install -y git && git clone https://github.com/SEU_USUARIO/automacao.git && cd automacao/installer && chmod +x install.sh install_primaria install_instancia scripts/*.sh && sudo ./install.sh
+```
+
+Escolha a opção **1** (Instalação primária). A instância será criada em `/home/deploy/NOME` (ex: `/home/deploy/gruposzap`).
 
 ### Perguntas durante a instalação
 
@@ -106,7 +102,7 @@ Será perguntado o que remover: processos PM2, configs Nginx, banco de dados e a
 ## Estrutura após instalação
 
 ```
-/home/deploy/instancia/post01/   # Nome da instância (usuário deploy)
+/home/deploy/post01/   # Nome da instância (ex: post01, gruposzap)
 ├── backend/
 │   ├── .env
 │   └── dist/

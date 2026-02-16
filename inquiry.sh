@@ -31,7 +31,7 @@ inquiry_primaria() {
   prompt_text DEPLOY_USER "Usuário para rodar a aplicação" "deploy"
   DEPLOY_USER=$(echo "$DEPLOY_USER" | tr -cd 'a-zA-Z0-9_-' | head -c 20)
   [[ -z "$DEPLOY_USER" ]] && DEPLOY_USER="deploy"
-  DEPLOY_DIR="/home/${DEPLOY_USER}/instancia"
+  DEPLOY_DIR="/home/${DEPLOY_USER}"
   INST_DIR="${DEPLOY_DIR}/${INSTANCE_NAME}"
 
   # Portas (faixas: backend 4000-4999, frontend 3000-3999)

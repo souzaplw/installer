@@ -27,8 +27,8 @@ elif [[ -f "/root/config" ]]; then
   CONFIG_FILE="/root/config"
 fi
 
-if [[ -z "$CONFIG_FILE" ]] && [[ -d /home/deploy/instancia ]]; then
-  for dir in /home/deploy/instancia/*/; do
+if [[ -z "$CONFIG_FILE" ]] && [[ -d /home/deploy ]]; then
+  for dir in /home/deploy/*/; do
     [[ -d "$dir" ]] || continue
     if [[ -f "${dir}installer/config" ]]; then
       CONFIG_FILE="${dir}installer/config"
@@ -41,9 +41,9 @@ if [[ -z "$CONFIG_FILE" ]] && [[ -d /home/deploy/instancia ]]; then
   done
 fi
 
-# Fallback: descobre via PM2 ou varredura de /home/deploy/instancia
-if [[ -z "$CONFIG_FILE" ]] && [[ -d /home/deploy/instancia ]]; then
-  for inst_path in /home/deploy/instancia/*/; do
+# Fallback: descobre via varredura de /home/deploy
+if [[ -z "$CONFIG_FILE" ]] && [[ -d /home/deploy ]]; then
+  for inst_path in /home/deploy/*/; do
     [[ -d "$inst_path" ]] || continue
     [[ -d "${inst_path}backend" ]] || continue
     [[ -d "${inst_path}.git" ]] || continue
@@ -52,7 +52,7 @@ if [[ -z "$CONFIG_FILE" ]] && [[ -d /home/deploy/instancia ]]; then
     REPO_URL=$(cd "$INST_DIR" 2>/dev/null && git config --get remote.origin.url 2>/dev/null) || REPO_URL=""
     REPO_BRANCH=$(cd "$INST_DIR" 2>/dev/null && git branch --show-current 2>/dev/null) || REPO_BRANCH="main"
     DEPLOY_USER="deploy"
-    DEPLOY_DIR="/home/deploy/instancia"
+    DEPLOY_DIR="/home/deploy"
     CONFIG_FILE="[DISCOVERED]"
     break
   done
@@ -60,7 +60,7 @@ fi
 
 if [[ -z "$CONFIG_FILE" ]]; then
   log_err "Nenhuma instalação encontrada. Execute primeiro a instalação primária."
-  log_err "Dica: copie o config para installer/config ou em /home/deploy/instancia/NOME/installer/config"
+  log_err "Dica: copie o config para installer/config ou em /home/deploy/NOME/installer/config"
   exit 1
 fi
 

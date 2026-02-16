@@ -86,7 +86,7 @@ system_pm2_startup "$DEPLOY_USER"
 
 echo ""
 echo "Instalação concluída!"
-echo "  Deploy:   /home/${DEPLOY_USER}/instancia/${INSTANCE_NAME}"
+echo "  Deploy:   ${INST_DIR}"
 echo "  Backend:  ${BACKEND_URL}"
 echo "  Frontend: ${FRONTEND_URL}"
 echo "  Admin:    ${ADMIN_EMAIL}"
