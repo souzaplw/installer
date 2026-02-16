@@ -14,7 +14,7 @@ Instalador estilo [Whaticket SaaS](https://github.com/plwdesign/instaladorwhatsa
 ## Menu principal (recomendado)
 
 ```bash
-cd automacao/installer
+cd installer/installer
 chmod +x install.sh install_primaria install_instancia scripts/*.sh
 sudo ./install.sh
 ```
@@ -38,7 +38,7 @@ sudo apt update && sudo apt upgrade -y
 ```
 
 ```bash
-sudo apt install -y git && git clone https://github.com/SEU_USUARIO/automacao.git && cd automacao/installer && chmod +x install.sh install_primaria install_instancia scripts/*.sh && sudo ./install.sh
+sudo apt install -y git && git clone https://github.com/souzaplw/installer.git && cd installer/installer && chmod +x install.sh install_primaria install_instancia scripts/*.sh && sudo ./install.sh
 ```
 
 Escolha a opção **1** (Instalação primária). A instância será criada em `/home/deploy/NOME` (ex: `/home/deploy/gruposzap`).
@@ -71,7 +71,7 @@ O Certbot solicitará certificado SSL automaticamente após a instalação.
 No menu principal, opção **2** (Nova instância), ou diretamente:
 
 ```bash
-cd automacao/installer
+cd installer/installer
 sudo ./install_instancia
 ```
 
@@ -130,7 +130,7 @@ pm2 logs post01-backend
 Se o WhatsApp não gerar QR code e aparecer erro `libnspr4.so: cannot open shared object file`, instale as dependências do Chrome:
 
 ```bash
-cd automacao/installer
+cd installer/installer
 sudo ./scripts/install_puppeteer_deps.sh
 pm2 restart gruposzap-backend
 ```
