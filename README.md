@@ -1,5 +1,16 @@
 # Instalador - WhatsApp Group Sender SaaS
 
+## Erro: `$'\r': command not found`
+
+Se aparecer esse erro (line endings Windows no Linux), execute no servidor:
+
+```bash
+cd /root/installer
+sed -i 's/\r$//' variables/*.sh lib/*.sh utils/*.sh scripts/*.sh install.sh install_primaria install_instancia fix-crlf.sh 2>/dev/null
+```
+
+Depois rode o instalador novamente.
+
 Instalador estilo [Whaticket SaaS](https://github.com/plwdesign/instaladorwhatsapsaas-main-new) para deploy em servidor Linux (Ubuntu/Debian).
 
 **GP** - Inserir em meu installer | Nginx • Certbot • PM2 • PostgreSQL • Node.js
@@ -14,7 +25,7 @@ Instalador estilo [Whaticket SaaS](https://github.com/plwdesign/instaladorwhatsa
 ## Menu principal (recomendado)
 
 ```bash
-cd installer/installer
+cd automacao/installer
 chmod +x install.sh install_primaria install_instancia scripts/*.sh
 sudo ./install.sh
 ```
@@ -38,7 +49,7 @@ sudo apt update && sudo apt upgrade -y
 ```
 
 ```bash
-sudo apt install -y git && git clone https://github.com/souzaplw/installer.git && cd installer/installer && chmod +x install.sh install_primaria install_instancia scripts/*.sh && sudo ./install.sh
+sudo apt install -y git && git clone https://github.com/SEU_USUARIO/automacao.git && cd automacao/installer && chmod +x install.sh install_primaria install_instancia scripts/*.sh && sudo ./install.sh
 ```
 
 Escolha a opção **1** (Instalação primária). A instância será criada em `/home/deploy/NOME` (ex: `/home/deploy/gruposzap`).
@@ -57,6 +68,14 @@ Escolha a opção **1** (Instalação primária). A instância será criada em `
 | Subdomínio frontend | app.seudominio.com | Para produção com Nginx |
 | E-mail admin | admin@admin.com | Login do SuperAdmin |
 | Senha admin | *** | Senha do SuperAdmin |
+| **Redis** | | |
+| Host do Redis | 127.0.0.1 (ou vazio) | Deixe vazio para não usar Redis. Use 127.0.0.1 para instalar Redis no servidor. |
+| Porta Redis | 6379 | Porta do Redis |
+| Senha Redis | (vazio = mesma do banco) | Se vazio, o backend usa a senha do PostgreSQL (DB_PASS). Recomendado Redis 6.2+ para filas BullMQ. |
+| DB Redis | 2 | Número do banco Redis (0-15) |
+| **Chrome/Puppeteer** | | (opcional, para WhatsApp) |
+| Caminho do Chrome | (vazio) | Deixe vazio para padrão headless |
+| WebSocket Chrome | (vazio) | URL de um Chrome já aberto, se quiser reutilizar |
 
 ### Subdomínios
 
@@ -71,7 +90,7 @@ O Certbot solicitará certificado SSL automaticamente após a instalação.
 No menu principal, opção **2** (Nova instância), ou diretamente:
 
 ```bash
-cd installer/installer
+cd automacao/installer
 sudo ./install_instancia
 ```
 
@@ -98,6 +117,16 @@ sudo ./install.sh
 ```
 
 Será perguntado o que remover: processos PM2, configs Nginx, banco de dados e arquivos.
+
+## Redis e backend
+
+O backend usa **Redis** para filas (BullMQ: campanhas agendadas, faturas) e blocklist dinâmica. Durante a instalação primária:
+
+- Se você informar **Host do Redis** = `127.0.0.1` ou `localhost`, o instalador **instala o Redis** no servidor.
+- **Senha do Redis**: se deixar vazio, o backend usa a **mesma senha do banco** (DB_PASS). Para definir senha no Redis: edite `/etc/redis/redis.conf` (linha `requirepass sua_senha`), reinicie `sudo systemctl restart redis-server`.
+- Recomendado **Redis 6.2+** para BullMQ; com Redis 5.x o sistema faz fallback em processo e continua funcionando.
+
+O `.env` do backend é gerado com: `IO_REDIS_SERVER`, `IO_REDIS_PORT`, `IO_REDIS_PASSWORD`, `IO_REDIS_DB_SESSION`, `CHROME_*`, rate limits e blocklist.
 
 ## Estrutura após instalação
 
@@ -130,7 +159,7 @@ pm2 logs post01-backend
 Se o WhatsApp não gerar QR code e aparecer erro `libnspr4.so: cannot open shared object file`, instale as dependências do Chrome:
 
 ```bash
-cd installer/installer
+cd automacao/installer
 sudo ./scripts/install_puppeteer_deps.sh
 pm2 restart gruposzap-backend
 ```

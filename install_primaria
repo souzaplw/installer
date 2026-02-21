@@ -13,6 +13,11 @@ while [ -h "$SOURCE" ]; do
 done
 PROJECT_ROOT="$( cd -P "$( dirname "$SOURCE" )" 2>/dev/null && pwd )"
 
+# Corrige line endings Windows (CRLF) -> Unix (LF)
+for f in "${PROJECT_ROOT}"/*.sh "${PROJECT_ROOT}"/variables/*.sh "${PROJECT_ROOT}"/lib/*.sh "${PROJECT_ROOT}"/utils/*.sh "${PROJECT_ROOT}"/scripts/*.sh "${PROJECT_ROOT}"/install_primaria "${PROJECT_ROOT}"/install_instancia; do
+  [ -f "$f" ] && sed -i 's/\r$//' "$f" 2>/dev/null || true
+done
+
 source "${PROJECT_ROOT}/variables/manifest.sh"
 source "${PROJECT_ROOT}/utils/manifest.sh"
 source "${PROJECT_ROOT}/lib/manifest.sh"
@@ -39,13 +44,17 @@ system_pm2_install
 system_nginx_install
 system_certbot_install
 system_puppeteer_deps_install
+# Redis: instala se o host configurado for localhost (filas BullMQ, blocklist)
+[[ "${IO_REDIS_SERVER:-}" == "127.0.0.1" || "${IO_REDIS_SERVER:-}" == "localhost" ]] && system_redis_install || true
 
 system_git_clone "$INST_DIR" "$REPO_URL" "$REPO_BRANCH" "$DEPLOY_USER"
 
 # Copia config para a instância (permite atualizar.sh encontrar mesmo rodando de outro diretório)
 if [[ -f "${PROJECT_ROOT}/config" ]] && [[ -d "$INST_DIR" ]]; then
+  mkdir -p "${INST_DIR}/installer"
   cp "${PROJECT_ROOT}/config" "${INST_DIR}/installer/config"
   chmod 600 "${INST_DIR}/installer/config"
+  chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "${INST_DIR}/installer"
 fi
 
 if [[ "$DB_USER" == "postgres" ]]; then

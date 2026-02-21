@@ -59,6 +59,26 @@ inquiry_primaria() {
   prompt_text ADMIN_PASSWORD "Senha do administrador" "" 1
   [[ -z "$ADMIN_PASSWORD" ]] && ADMIN_PASSWORD="changeme123"
   prompt_text ADMIN_NAME "Nome do administrador" "Administrador"
+
+  # Redis (opcional - filas BullMQ, blocklist dinâmica; recomendado Redis 6.2+)
+  echo ""
+  echo "  Redis: usado para filas (campanhas/faturas) e blocklist. Deixe host vazio para não usar."
+  prompt_text IO_REDIS_SERVER "Host do Redis (vazio = não usar Redis)" "127.0.0.1"
+  if [[ -n "$IO_REDIS_SERVER" ]]; then
+    prompt_text IO_REDIS_PORT "Porta do Redis" "6379"
+    prompt_text IO_REDIS_PASSWORD "Senha do Redis (vazio = usar mesma senha do banco)" "" 1
+    prompt_text IO_REDIS_DB_SESSION "Número do DB Redis (0-15)" "2"
+  else
+    IO_REDIS_PORT="6379"
+    IO_REDIS_PASSWORD=""
+    IO_REDIS_DB_SESSION="2"
+  fi
+
+  # Chrome/Puppeteer (opcional - WhatsApp; deixe vazio para padrão)
+  echo ""
+  echo "  Chrome/Puppeteer: para WhatsApp. Deixe vazio para usar padrão (headless)."
+  prompt_text CHROME_BIN "Caminho do Chrome (vazio = padrão)" ""
+  prompt_text CHROME_WS "URL WebSocket Chrome existente (vazio = não usar)" ""
   
   # Salvar config para install_instancia
   mkdir -p "$PROJECT_ROOT"
@@ -84,6 +104,12 @@ REPO_BRANCH=$REPO_BRANCH
 DEPLOY_USER=$DEPLOY_USER
 DEPLOY_DIR=$DEPLOY_DIR
 INST_DIR=$INST_DIR
+IO_REDIS_SERVER=$IO_REDIS_SERVER
+IO_REDIS_PORT=$IO_REDIS_PORT
+IO_REDIS_PASSWORD=$IO_REDIS_PASSWORD
+IO_REDIS_DB_SESSION=$IO_REDIS_DB_SESSION
+CHROME_BIN=$CHROME_BIN
+CHROME_WS=$CHROME_WS
 CONFIGEOF
   chmod 600 "${PROJECT_ROOT}/config"
   log_ok "Configuração salva em ${PROJECT_ROOT}/config"

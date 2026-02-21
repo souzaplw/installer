@@ -14,6 +14,11 @@ while [[ -h "$SOURCE" ]]; do
 done
 PROJECT_ROOT="$( cd -P "$( dirname "$SOURCE" )" 2>/dev/null && pwd )"
 
+# Corrige line endings Windows (CRLF) -> Unix (LF)
+for _f in "${PROJECT_ROOT}"/*.sh "${PROJECT_ROOT}"/variables/*.sh "${PROJECT_ROOT}"/lib/*.sh "${PROJECT_ROOT}"/utils/*.sh "${PROJECT_ROOT}"/scripts/*.sh "${PROJECT_ROOT}"/install_primaria "${PROJECT_ROOT}"/install_instancia; do
+  [ -f "$_f" ] && sed -i 's/\r$//' "$_f" 2>/dev/null || true
+done
+
 # Cores
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -66,7 +71,8 @@ main() {
         if [[ -f "${PROJECT_ROOT}/config" ]]; then
           echo -e "${YELLOW}[AVISO]${NC} Já existe uma instalação em ${PROJECT_ROOT}/config"
           read -p "Deseja sobrescrever e reinstalar? (s/N): " resp
-          [[ "$resp" != "s" && "$resp" != "S" ]] && { echo "Cancelado."; continue; }
+          resp="$(echo "$resp" | tr '[:upper:]' '[:lower:]')"
+          [[ "$resp" != "s" && "$resp" != "sim" ]] && { echo "Cancelado."; continue; }
         fi
         exec "${PROJECT_ROOT}/install_primaria"
         ;;

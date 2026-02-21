@@ -33,6 +33,19 @@ system_postgres_install() {
   log_ok "PostgreSQL instalado"
 }
 
+# Redis (filas BullMQ, blocklist dinâmica; recomendado 6.2+)
+system_redis_install() {
+  if command -v redis-server &>/dev/null; then
+    log_ok "Redis já instalado ($(redis-server --version 2>/dev/null || echo 'redis-server'))"
+    return 0
+  fi
+  log_step "Instalando Redis..."
+  sudo apt-get install -y redis-server
+  sudo systemctl start redis-server 2>/dev/null || sudo systemctl start redis 2>/dev/null || true
+  sudo systemctl enable redis-server 2>/dev/null || sudo systemctl enable redis 2>/dev/null || true
+  log_ok "Redis instalado. Para usar senha: edite /etc/redis/redis.conf (requirepass) e reinicie: sudo systemctl restart redis-server"
+}
+
 system_pm2_install() {
   if command -v pm2 &>/dev/null; then
     log_ok "PM2 já instalado"

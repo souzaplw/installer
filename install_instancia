@@ -69,6 +69,8 @@ echo ""
 
 # Dependências Puppeteer (WhatsApp QR) se ainda não instaladas
 system_puppeteer_deps_install 2>/dev/null || true
+# Redis (se host for localhost e ainda não instalado)
+[[ "${IO_REDIS_SERVER:-}" == "127.0.0.1" || "${IO_REDIS_SERVER:-}" == "localhost" ]] && system_redis_install 2>/dev/null || true
 
 # Criar banco (cd /tmp evita "Permission denied" para postgres em /root)
 if [[ "$DB_USER" == "postgres" ]]; then
